@@ -1,29 +1,26 @@
 name: Release Handler
 
 on:
-  push:
-    branches:
-      - dev
-    paths:
-      - '**.zip'     # Trigger only if .zip is pushed
+  workflow_dispatch:   # 👈 allows manual run
+    inputs:
+      zip_name:
+        description: "Name of the release ZIP file (example: CORESERVER-5.15.12.1.2-SP.zip)"
+        required: true
+        type: string
 
 jobs:
-  deploy:
-    runs-on: self-hosted   # Runs on your Windows 11 machine
-
+  handle-release:
+    runs-on: self-hosted   # 👈 runs on your Windows runner
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true   # Important if using Git LFS for large files
+        uses: actions/checkout@v3
 
-      - name: Copy release zip to local folder
+      - name: Copy ZIP to target folder
         run: |
-          echo "Copying zip to C:\server_release"
-          mkdir C:\server_release || echo "Folder exists"
-          for %f in (*.zip) do copy "%f" C:\server_release\
+          echo "Copying ${{ github.event.inputs.zip_name }} to local folder..."
+          copy "C:\my-repo\binary_Installation\${{ github.event.inputs.zip_name }}" "D:\ReleaseFolder\"
 
-      - name: Run Python installation script
+      - name: Run Python install script
         run: |
-          echo "Running install script..."
-          python C:\CenTrak\Framework\Framework\MM_Badge\Core_Server_Installation\run_and_upload.py
+          echo "Running installation script..."
+          python C:\CenTrak\Framework\Framework\MM_Badge\Core_Server_Installation\run_and_upload.py "D:\ReleaseFolder\${{ github.event.inputs.zip_name }}"
