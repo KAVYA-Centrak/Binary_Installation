@@ -1,36 +1,29 @@
-name: Handle Server Release
+name: Release Handler
 
 on:
   push:
     branches:
-      - dev     # only trigger when you push to dev branch
+      - dev
     paths:
-      - '**.zip'   # only run if a .zip file is committed
+      - '**.zip'     # Trigger only if .zip is pushed
 
 jobs:
-  deploy-release:
-    runs-on: self-hosted   # runs on your Windows runner
+  deploy:
+    runs-on: self-hosted   # Runs on your Windows 11 machine
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true   # Important if using Git LFS for large files
 
-      - name: Find release zip file
+      - name: Copy release zip to local folder
         run: |
-          echo "Looking for zip files..."
-          dir *.zip /s
-        shell: pwsh
+          echo "Copying zip to C:\server_release"
+          mkdir C:\server_release || echo "Folder exists"
+          for %f in (*.zip) do copy "%f" C:\server_release\
 
-      - name: Copy zip file to target folder
+      - name: Run Python installation script
         run: |
-          $source = Get-ChildItem -Path . -Recurse -Filter *.zip | Select-Object -First 1
-          $destination = "C:\releases"   # 👉 change this to your desired local folder
-          if (!(Test-Path $destination)) { New-Item -ItemType Directory -Path $destination }
-          Copy-Item $source.FullName -Destination $destination -Force
-          Write-Host "Copied $($source.Name) to $destination"
-        shell: pwsh
-
-      - name: Run custom script
-        run: |
-          cd C:\releases
-          .\your-script.bat   # 👉 change to your script name (bat, ps1, or exe)
-        shell: pwsh
+          echo "Running install script..."
+          python C:\CenTrak\Framework\Framework\MM_Badge\Core_Server_Installation\run_and_upload.py
