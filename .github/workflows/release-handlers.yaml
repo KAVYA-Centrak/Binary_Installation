@@ -1,0 +1,36 @@
+name: Handle Server Release
+
+on:
+  push:
+    branches:
+      - dev     # only trigger when you push to dev branch
+    paths:
+      - '**.zip'   # only run if a .zip file is committed
+
+jobs:
+  deploy-release:
+    runs-on: self-hosted   # runs on your Windows runner
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Find release zip file
+        run: |
+          echo "Looking for zip files..."
+          dir *.zip /s
+        shell: pwsh
+
+      - name: Copy zip file to target folder
+        run: |
+          $source = Get-ChildItem -Path . -Recurse -Filter *.zip | Select-Object -First 1
+          $destination = "C:\releases"   # 👉 change this to your desired local folder
+          if (!(Test-Path $destination)) { New-Item -ItemType Directory -Path $destination }
+          Copy-Item $source.FullName -Destination $destination -Force
+          Write-Host "Copied $($source.Name) to $destination"
+        shell: pwsh
+
+      - name: Run custom script
+        run: |
+          cd C:\releases
+          .\your-script.bat   # 👉 change to your script name (bat, ps1, or exe)
+        shell: pwsh
