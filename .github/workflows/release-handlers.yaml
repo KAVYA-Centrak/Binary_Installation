@@ -18,7 +18,7 @@ jobs:
       - name: Copy ZIP to target folder
         run: |
           echo "Copying ${{ github.event.inputs.zip_name }} to local folder..."
-          copy "C:\my-repo\binary_Installation\${{ github.event.inputs.zip_name }}" "D:\ReleaseFolder\"
+          copy "C:\my-repo\binary_Installation\${{ github.event.inputs.zip_name }}" "C:\ReleaseFolder\"
 
       - name: Run Python install script
         run: |
